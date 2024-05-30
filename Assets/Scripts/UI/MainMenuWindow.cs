@@ -3,11 +3,23 @@ using System.Collections.Generic;
 using Ui.WindowSystem;
 using UnityEngine;
 
-public class MainMenuWindow : Window
+namespace UI
 {
-    
-    public void StartGame()
+    public class MainMenuWindow : Window
     {
-        MenuRouter.Instance.Router.Show<GameInProgressWindow>();
+        public void StartGame()
+        {
+            MenuRouter.Instance.Router.Show<GameInProgressWindow>();
+        }
+
+        public void OpenProfileMenu()
+        {
+            MenuRouter.Instance.Router.Show<ProfileWindow>();
+        }
+        
+        public void OpenLeaderboardMenu()
+        {
+            MenuRouter.Instance.Router.Show<LeaderboardWindow>();
+        }
     }
 }
