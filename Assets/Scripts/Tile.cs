@@ -5,23 +5,23 @@ using UnityEngine;
 public class Tile : MonoBehaviour
 {
     private static Tile selected;
-    private SpriteRenderer Renderer;
+    
+    [SerializeField] private SpriteRenderer _renderer;
+    
+    
 
     public Vector2Int Position;
 
-    private void Start()
-    {
-        Renderer = GetComponent<SpriteRenderer>();
-    }
+    public SpriteRenderer Renderer => _renderer;
 
     public void Select()
     {
-        Renderer.color = Color.grey;
+        _renderer.color = Color.grey;
     }
 
     public void Unselect()
     {
-        Renderer.color = Color.white;
+        _renderer.color = Color.white;
     }
 
     private void OnMouseDown()
@@ -31,7 +31,7 @@ public class Tile : MonoBehaviour
             if (selected == this)
                 return;
             selected.Unselect();
-            if (Vector2Int.Distance(selected.Position, Position) == 1)
+            if (Mathf.Approximately(Vector2Int.Distance(selected.Position, Position), 1))
             {
                 GridManager.Instance.SwapTiles(Position, selected.Position);
                 selected = null;

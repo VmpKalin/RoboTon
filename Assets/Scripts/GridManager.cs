@@ -9,7 +9,7 @@ public class GridManager : MonoBehaviour
     public GameObject TilePrefab;
     public int GridDimension = 6;
     public float Distance = 1.0f;
-    private GameObject[,] Grid;
+    private Tile[,] Grid;
 
     public int StartingMoves = 50;
     private int _numMoves;
@@ -58,7 +58,7 @@ public class GridManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Grid = new GameObject[GridDimension, GridDimension];
+        Grid = new Tile[GridDimension, GridDimension];
         GameOverMenu.SetActive(false);
         InitGrid();
     }
@@ -70,7 +70,8 @@ public class GridManager : MonoBehaviour
         for (int row = 0; row < GridDimension; row++)
             for (int column = 0; column < GridDimension; column++)
             {
-                GameObject newTile = Instantiate(TilePrefab);
+                var instantiateTile = Instantiate(TilePrefab.gameObject, transform);
+                Tile newTile = instantiateTile.GetComponent<Tile>();
 
                 List<Sprite> possibleSprites = new List<Sprite>(Sprites);
 
@@ -89,13 +90,10 @@ public class GridManager : MonoBehaviour
                     possibleSprites.Remove(down1);
                 }
 
-                SpriteRenderer renderer = newTile.GetComponent<SpriteRenderer>();
+                SpriteRenderer renderer = newTile.GetComponentInChildren<SpriteRenderer>();
                 renderer.sprite = possibleSprites[Random.Range(0, possibleSprites.Count)];
 
-                Tile tile = newTile.AddComponent<Tile>();
-                tile.Position = new Vector2Int(column, row);
-
-                newTile.transform.parent = transform;
+                newTile.Position = new Vector2Int(column, row);
                 newTile.transform.position = new Vector3(column * Distance, row * Distance, 0) + positionOffset;
                 
                 Grid[column, row] = newTile;
@@ -104,12 +102,8 @@ public class GridManager : MonoBehaviour
 
     Sprite GetSpriteAt(int column, int row)
     {
-        if (column < 0 || column >= GridDimension
-         || row < 0 || row >= GridDimension)
-            return null;
-        GameObject tile = Grid[column, row];
-        SpriteRenderer renderer = tile.GetComponent<SpriteRenderer>();
-        return renderer.sprite;
+        var spriteRendererAt = GetSpriteRendererAt(column, row);
+        return !spriteRendererAt ? null : spriteRendererAt.sprite;
     }
 
     SpriteRenderer GetSpriteRendererAt(int column, int row)
@@ -117,18 +111,13 @@ public class GridManager : MonoBehaviour
         if (column < 0 || column >= GridDimension
          || row < 0 || row >= GridDimension)
             return null;
-        GameObject tile = Grid[column, row];
-        SpriteRenderer renderer = tile.GetComponent<SpriteRenderer>();
-        return renderer;
+        return Grid[column, row].Renderer;
     }
 
     public void SwapTiles(Vector2Int tile1Position, Vector2Int tile2Position)
     {
-        GameObject tile1 = Grid[tile1Position.x, tile1Position.y];
-        SpriteRenderer renderer1 = tile1.GetComponent<SpriteRenderer>();
-        
-        GameObject tile2 = Grid[tile2Position.x, tile2Position.y];
-        SpriteRenderer renderer2 = tile2.GetComponent<SpriteRenderer>();
+        SpriteRenderer renderer1 = Grid[tile1Position.x, tile1Position.y].Renderer;
+        SpriteRenderer renderer2 = Grid[tile2Position.x, tile2Position.y].Renderer;
 
         Sprite temp = renderer1.sprite;
         renderer1.sprite = renderer2.sprite;
