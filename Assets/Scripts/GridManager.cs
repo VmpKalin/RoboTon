@@ -88,7 +88,7 @@ public class GridManager : MonoBehaviour
         {
             foreach (var tile in _grid)
             {
-                if(tile) Destroy(tile);
+                if(tile) Destroy(tile.gameObject);
             }
         }
         _grid = null;

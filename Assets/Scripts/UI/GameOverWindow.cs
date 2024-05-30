@@ -22,7 +22,7 @@ public class GameOverWindow : Window
 
     public void RestartLevel()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        MenuRouter.Instance.Router.Show<GameInProgressWindow>();
     }
     
     public struct InfoToShow
