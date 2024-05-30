@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Ui.WindowSystem;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameOverManager : MonoBehaviour
+public class GameOverWindow : Window
 {
     public GameObject HighScoreAlert;
     public TextMeshProUGUI scoreText;
@@ -15,27 +16,8 @@ public class GameOverManager : MonoBehaviour
 
     private void OnEnable()
     {
-        int score = PlayerPrefs.GetInt("score");
-        int highScore;
-        if (PlayerPrefs.HasKey("highScore"))
-        {
-            highScore = PlayerPrefs.GetInt("highScore");
-        }
-        else 
-        {
-            highScore = 0; 
-        }
-        if (score > highScore)
-        {
-            PlayerPrefs.SetInt("highScore", score);
-            highScoreText.text = score.ToString();
-            HighScoreAlert.SetActive(true);
-        }
-        else
-        {
-            HighScoreAlert.SetActive(false);
-            highScoreText.text = highScore.ToString();
-        }
+        HighScoreAlert.SetActive(false);
+        highScoreText.text = highScore.ToString();
         scoreText.text = score.ToString();
     }
 
