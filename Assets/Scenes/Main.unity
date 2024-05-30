@@ -123,30 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &324526897 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3032250562669994345, guid: 7eda362bd03214bc8a24898e0c680347,
-    type: 3}
-  m_PrefabInstance: {fileID: 3032250562415133272}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &395836299 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3032250562724526547, guid: 7eda362bd03214bc8a24898e0c680347,
-    type: 3}
-  m_PrefabInstance: {fileID: 3032250562415133272}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &586441227
 GameObject:
   m_ObjectHideFlags: 0
@@ -255,9 +231,6 @@ MonoBehaviour:
   GridDimension: 5
   Distance: 1
   StartingMoves: 8
-  GameOverMenu: {fileID: 1293258203}
-  MovesText: {fileID: 324526897}
-  ScoreText: {fileID: 395836299}
 --- !u!4 &756423278
 Transform:
   m_ObjectHideFlags: 0
@@ -337,12 +310,6 @@ LightingSettings:
   m_PVRTiledBaking: 0
   m_NumRaysToShootPerTexel: -1
   m_RespectSceneVisibilityWhenBakingGI: 0
---- !u!1 &1293258203 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3032250563437662083, guid: 7eda362bd03214bc8a24898e0c680347,
-    type: 3}
-  m_PrefabInstance: {fileID: 3032250562415133272}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1406980370
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,28 +507,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 468977576, guid: 7eda362bd03214bc8a24898e0c680347, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -18.627869
-      objectReference: {fileID: 0}
-    - target: {fileID: 468977576, guid: 7eda362bd03214bc8a24898e0c680347, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -53.121704
-      objectReference: {fileID: 0}
     - target: {fileID: 3032250563677591410, guid: 7eda362bd03214bc8a24898e0c680347,
         type: 3}
       propertyPath: m_Name
       value: GameMenu
-      objectReference: {fileID: 0}
-    - target: {fileID: 3032250563677591412, guid: 7eda362bd03214bc8a24898e0c680347,
-        type: 3}
-      propertyPath: m_MatchWidthOrHeight
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3032250563677591412, guid: 7eda362bd03214bc8a24898e0c680347,
-        type: 3}
-      propertyPath: m_ReferencePixelsPerUnit
-      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 3032250563677591414, guid: 7eda362bd03214bc8a24898e0c680347,
         type: 3}

@@ -1,21 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using Ui.WindowSystem;
 using UnityEngine;
 
-namespace Ui.WindowSystem
+public class MenuRouter : MonoBehaviour
 {
-    public class MenuRouter : MonoBehaviour
-    {
-        [SerializeField] private List<Window> _windows;
-        [SerializeField] private Window _firstWindowToShow;
+    public static MenuRouter Instance { get; private set; }
+        
+    [SerializeField] private List<Window> _windows;
+    [SerializeField] private Window _firstWindowToShow;
 
         
-        private RouterCloseAllPrevious _router;
+    public RouterCloseAllPrevious Router { get; private set; }
 
-        private void Awake()
-        {
-            _router = new RouterCloseAllPrevious(_windows);
-            _router.Show(RouterDontCloseAnyPrevious.WindowIdentity(_firstWindowToShow));
-        }
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    private void Start()
+    {
+        Router = new(_windows);
+        Router.Show(RouterDontCloseAnyPrevious.WindowIdentity(_firstWindowToShow));
     }
 }

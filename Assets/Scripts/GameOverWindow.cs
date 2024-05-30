@@ -2,36 +2,33 @@
 using System.Collections.Generic;
 using TMPro;
 using Ui.WindowSystem;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameOverWindow : Window
 {
-    public GameObject HighScoreAlert;
-    public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI highScoreText;
+    [SerializeField] private GameObject HighScoreAlert;
+    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private TextMeshProUGUI highScoreText;
 
-    private void OnEnable()
+    protected override void OnSetInfoToShow(object infoToShowObj)
     {
-        HighScoreAlert.SetActive(false);
-        highScoreText.text = highScore.ToString();
-        scoreText.text = score.ToString();
+        if (infoToShowObj is not InfoToShow infoToShow) return;
+        
+        HighScoreAlert.SetActive(infoToShow.isNewHighScore);
+        highScoreText.text = infoToShow.highscore.ToString();
+        scoreText.text = infoToShow.score.ToString();
     }
 
     public void RestartLevel()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
-
-#if UNITY_EDITOR
-    [MenuItem("Match three/Reset high score")]
-    static void ResetHighScore()
+    
+    public struct InfoToShow
     {
-        PlayerPrefs.SetInt("highScore", 0);
-        PlayerPrefs.SetInt("score", 0);
+        public int score;
+        public int highscore;
+        public bool isNewHighScore;
     }
-#endif
 }
