@@ -47,7 +47,8 @@ public class GridManager : MonoBehaviour
         
         var distanceHorizontal = rectTransform.rect.width / GridDimension;
         var distanceVertical = rectTransform.rect.height / GridDimension;
-        Vector3 positionOffset = - new Vector3(GridDimension * distanceHorizontal / 2.0f, GridDimension * distanceVertical / 2.0f, 0);
+        var distance = Mathf.Min(distanceHorizontal, distanceVertical);
+        Vector3 positionOffset = - new Vector3(GridDimension * distance / 2.0f, GridDimension * distance / 2.0f, 0);
 
         for (int row = 0; row < GridDimension; row++)
             for (int column = 0; column < GridDimension; column++)
@@ -72,9 +73,9 @@ public class GridManager : MonoBehaviour
                 }
 
                 newTile.SetUp(this,new Vector2Int(column, row) , possibleSprites[Random.Range(0, possibleSprites.Count)]);
-                newTile.transform.localPosition = new Vector3(column * distanceHorizontal, row * distanceVertical, 0) + positionOffset;
+                newTile.transform.localPosition = new Vector3(column * distance, row * distance, 0) + positionOffset;
                 var tileRectTransform = newTile.transform as RectTransform;
-                tileRectTransform.sizeDelta = new Vector2(distanceHorizontal, distanceVertical);
+                tileRectTransform.sizeDelta = new Vector2(distance, distance);
                 _grid[column, row] = newTile;
             }
     }
@@ -233,4 +234,5 @@ public class GridManager : MonoBehaviour
         };
         MenuRouter.Instance.Router.Show<MainMenuWindow>(infoToShow, callback: EraseGrid);
     }
+
 }

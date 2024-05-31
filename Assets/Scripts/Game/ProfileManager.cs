@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UI;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -18,9 +19,6 @@ public class ProfileManager : MonoBehaviour
         private set => _currentUserInfo = value;
     }
 
-    public string Username { get; private set; }
-    public string Id { get; private set; }
-    
     [Serializable]
     public struct UserInfo
     {
@@ -29,7 +27,6 @@ public class ProfileManager : MonoBehaviour
         public int Coins;
         public string TonWallet;
         public string Username;
-        public bool ShowInLeaderBoard;
     }
     
     [Serializable]
@@ -48,28 +45,27 @@ public class ProfileManager : MonoBehaviour
 
     private void Start()
     {
-        Username = URLParameters.GetSearchParameters().GetValueOrDefault("username", "username");
-        Id = URLParameters.GetSearchParameters().GetValueOrDefault("id", "id");
+        var username = URLParameters.GetSearchParameters().GetValueOrDefault("username", "username");
+        var id = URLParameters.GetSearchParameters().GetValueOrDefault("id", "id");
+        
+        _currentUserInfo = new UserInfo() { user_id = id, Username = username };
         
         var loadingPopup = PopupRouter.Instance.Router.Show<LoadingPopup>();
-        StartCoroutine(GetProfile(Id, (x)=> loadingPopup.Hide()));
+        StartCoroutine(GetProfile(_currentUserInfo.user_id, (x)=> loadingPopup.Hide()));
     }
 
-    private void AddTestData()
+    public void UpdateHighScore(int newHighScore)
     {
-        StartCoroutine(AddOrUpdateProfile(new UserInfo()
-        {
-            user_id = Id,
-            Username = Username,
-            Coins = 69,
-            TonWallet = "unity wallet",
-            HighScore = 3399,
-        }));
-        /*
-         * {"isSuccess":false,"statusCode":400,"errors":["User can update only his profile"]}
-         */
+        var currentUserInfoToUpdate = CurrentUserInfo;
+        currentUserInfoToUpdate.HighScore = newHighScore;
+        CurrentUserInfo = currentUserInfoToUpdate;
+        StartCoroutine(AddOrUpdateProfile(currentUserInfoToUpdate));
     }
 
+    public void UpdateWalletInfo(string newWallet)
+    {
+    }
+    
     private IEnumerator GetProfile(string userId, Action<bool> callback = null) 
     {
         var url = string.Format(PROFILES_URL_FORMAT, userId);
@@ -82,9 +78,10 @@ public class ProfileManager : MonoBehaviour
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                var response = JsonUtility.FromJson<Response>(request.downloadHandler.text);
+                var response = JsonConvert.DeserializeObject<Response>(request.downloadHandler.text);
                 if (response.isSuccess)
                 {
+                    response.body.user_id = CurrentUserInfo.user_id;
                     CurrentUserInfo = response.body;
                     callback?.Invoke(true);
                 }
@@ -124,7 +121,7 @@ public class ProfileManager : MonoBehaviour
             }
             else
             {
-                var response = JsonUtility.FromJson<Response>(request.downloadHandler.text);
+                var response = JsonConvert.DeserializeObject<Response>(request.downloadHandler.text);
                 if (!response.isSuccess)
                 {
                     var errors = response.errors is null ? "" : string.Join(" ", response.errors);
@@ -140,5 +137,4 @@ public class ProfileManager : MonoBehaviour
             }
         }
     }
-    
 }

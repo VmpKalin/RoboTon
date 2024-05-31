@@ -19,21 +19,20 @@ namespace UI
             _walletInputField.onEndEdit.AddListener(OnWalletEndEdit);
         }
 
-        private void OnWalletEndEdit(string arg0)
+        private void OnWalletEndEdit(string newWallet)
         {
-            Debug.Log("new wallet: "+ arg0);
+            ProfileManager.Instance.UpdateWalletInfo(newWallet);
         }
 
         protected override void OnSetInfoToShow(object infoToShow)
         {
-            string username = ProfileManager.Instance.Username;
-            string id = ProfileManager.Instance.Id;
-            _usernameText.text = username;
-            _idText.text = id;
-            _highscoreText.text = ScoreManager.Instance.HighScore.ToString();
+            _usernameText.text = ProfileManager.Instance.CurrentUserInfo.Username;
+            _idText.text = ProfileManager.Instance.CurrentUserInfo.user_id;
+            
+            _highscoreText.text = ProfileManager.Instance.CurrentUserInfo.HighScore.ToString();
 
-            _coinsText.text = "0000";
-            _walletInputField.text = "1111";
+            _coinsText.text = ProfileManager.Instance.CurrentUserInfo.Coins.ToString();
+            _walletInputField.text = ProfileManager.Instance.CurrentUserInfo.TonWallet;
         }
 
         public void ClosePopup()

@@ -13,7 +13,6 @@ public class ScoreManager: MonoBehaviour
     public event Action<int, int> CurrentScoreChanged;
     
     private int _currentScore;
-    private int _highScore;
 
     public int CurrentScore
     {
@@ -30,31 +29,14 @@ public class ScoreManager: MonoBehaviour
     {
         if (score <= HighScore) return false;
         HighScore = score;
+        if(ProfileManager.Instance)ProfileManager.Instance.UpdateHighScore(score);
         return true;
     }
 
-    public int HighScore
-    {
-        get => _highScore;
-        set
-        {
-            _highScore = value;
-            PlayerPrefs.SetInt(HIGHSCORE_KEY, value);
-        }
-    }
+    public int HighScore { get; set; }
 
     private void Awake()
     {
         Instance = this;
-        _highScore = PlayerPrefs.HasKey(HIGHSCORE_KEY) ? PlayerPrefs.GetInt(HIGHSCORE_KEY) : 0;
     }
-    
-    
-#if UNITY_EDITOR
-    [MenuItem("Tools/Match three/Reset high score")]
-    static void ResetHighScore()
-    {
-        PlayerPrefs.SetInt(HIGHSCORE_KEY, 0);
-    }
-#endif
 }
