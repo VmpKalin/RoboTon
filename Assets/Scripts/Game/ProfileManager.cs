@@ -89,6 +89,7 @@ public class ProfileManager : MonoBehaviour
             
         if (request.result != UnityWebRequest.Result.Success) 
         {
+            Debug.Log(request.downloadHandler.text);
             Debug.LogError(request.error);
         }
     }

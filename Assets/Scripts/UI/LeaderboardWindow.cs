@@ -4,10 +4,9 @@ namespace UI
 {
     public class LeaderboardWindow: Window
     {
-        
-        public void OpenMainMenu()
+        public void ClosePopup()
         {
-            MenuRouter.Instance.Router.Show<MainMenuWindow>();
+            Hide();
         }
     }
 }

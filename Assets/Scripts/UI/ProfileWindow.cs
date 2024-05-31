@@ -36,9 +36,9 @@ namespace UI
             _walletInputField.text = "1111";
         }
 
-        public void OpenMainMenu()
+        public void ClosePopup()
         {
-            MenuRouter.Instance.Router.Show<MainMenuWindow>();
+            Hide();
         }
     }
 }

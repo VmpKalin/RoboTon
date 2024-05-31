@@ -43,7 +43,11 @@ public class GridManager : MonoBehaviour
 
     private void InitGrid()
     {
-        Vector3 positionOffset = - new Vector3(GridDimension * Distance / 2.0f, GridDimension * Distance / 2.0f, 0);
+        RectTransform rectTransform = transform as RectTransform;
+        
+        var distanceHorizontal = rectTransform.rect.width / GridDimension;
+        var distanceVertical = rectTransform.rect.height / GridDimension;
+        Vector3 positionOffset = - new Vector3(GridDimension * distanceHorizontal / 2.0f, GridDimension * distanceVertical / 2.0f, 0);
 
         for (int row = 0; row < GridDimension; row++)
             for (int column = 0; column < GridDimension; column++)
@@ -68,8 +72,9 @@ public class GridManager : MonoBehaviour
                 }
 
                 newTile.SetUp(this,new Vector2Int(column, row) , possibleSprites[Random.Range(0, possibleSprites.Count)]);
-                newTile.transform.localPosition = new Vector3(column * Distance, row * Distance, 0) + positionOffset;
-                
+                newTile.transform.localPosition = new Vector3(column * distanceHorizontal, row * distanceVertical, 0) + positionOffset;
+                var tileRectTransform = newTile.transform as RectTransform;
+                tileRectTransform.sizeDelta = new Vector2(distanceHorizontal, distanceVertical);
                 _grid[column, row] = newTile;
             }
     }
@@ -218,16 +223,14 @@ public class GridManager : MonoBehaviour
 
     private void GameOver()
     {
-        Debug.Log("GAME OVER");
-        
         SoundManager.Instance.PlaySound(SoundType.TypeGameOver);
         bool isNewHighScore = ScoreManager.Instance.CheckAndSetHighScore(ScoreManager.Instance.CurrentScore);
-        var infoToShow = new GameOverWindow.InfoToShow()
+        var infoToShow = new MainMenuWindow.InfoToShow()
         {
-            score = ScoreManager.Instance.CurrentScore,
-            highscore = ScoreManager.Instance.HighScore,
-            isNewHighScore = isNewHighScore,
+            Score = ScoreManager.Instance.CurrentScore,
+            Highscore = ScoreManager.Instance.HighScore,
+            IsNewHighScore = isNewHighScore,
         };
-        MenuRouter.Instance.Router.Show<GameOverWindow>(infoToShow, callback: EraseGrid);
+        MenuRouter.Instance.Router.Show<MainMenuWindow>(infoToShow, callback: EraseGrid);
     }
 }
