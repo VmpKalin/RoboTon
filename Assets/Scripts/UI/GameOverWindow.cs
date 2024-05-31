@@ -27,6 +27,11 @@ namespace UI
             MenuRouter.Instance.Router.Show<GameInProgressWindow>();
         }
     
+        public void OpenMainMenu()
+        {
+            MenuRouter.Instance.Router.Show<MainMenuWindow>();
+        }
+        
         public struct InfoToShow
         {
             public int score;
