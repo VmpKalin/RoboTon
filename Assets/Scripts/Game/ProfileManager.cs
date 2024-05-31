@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,7 +26,8 @@ public class ProfileManager : MonoBehaviour
     [Serializable]
     public struct UserInfo
     {
-        public string Id;
+        [JsonProperty(PropertyName = "user_id")]
+        public string user_id;
         public int HighScore;
         public int Coins;
         public string TonWallet;
@@ -40,17 +42,22 @@ public class ProfileManager : MonoBehaviour
 
     private void Start()
     {
+        Debug.LogWarning("Start method was executed");
+
         Username = URLParameters.GetSearchParameters().GetValueOrDefault("username", "username");
         Id = URLParameters.GetSearchParameters().GetValueOrDefault("id", "id");
-        //AddTestData();
-        //StartCoroutine(GetProfile(Id));
+        Debug.LogWarning($"Username: {Username}");
+        Debug.LogWarning($"Id: {Id}");
+
+        AddTestData();
+        StartCoroutine(GetProfile(Id));
     }
 
     private void AddTestData()
     {
         StartCoroutine(AddOrUpdateProfile(new UserInfo()
         {
-            Id = Id,
+            user_id = Id,
             Username = Username,
             Coins = 69,
             TonWallet = "unity wallet"
@@ -64,33 +71,43 @@ public class ProfileManager : MonoBehaviour
     {
         var url = string.Format(PROFILES_URL_FORMAT, userId);
         
-        using UnityWebRequest request = UnityWebRequest.Get (url);
-        
-        request.SetRequestHeader("Access-Control-Allow-Origin", "*");
-        yield return request.SendWebRequest();
-            
-        if (request.result == UnityWebRequest.Result.Success) {
-            var json = request.downloadHandler.text;
-            CurrentUserInfo = string.IsNullOrEmpty(json) ? new UserInfo() : JsonUtility.FromJson<UserInfo>(json);
-        } else
+        using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-            Debug.LogError(request.error);
+            request.SetRequestHeader("Access-Control-Allow-Origin", "*");
+            Debug.LogWarning("GetProfile, before yield");
+
+            yield return request.SendWebRequest();
+
+            Debug.LogWarning("GetProfile, after yield");
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                var json = request.downloadHandler.text;
+                CurrentUserInfo = string.IsNullOrEmpty(json) ? new UserInfo() : JsonUtility.FromJson<UserInfo>(json);
+            }
+            else
+            {
+                Debug.LogError(request.error);
+            }
         }
     }
     
     private IEnumerator AddOrUpdateProfile(UserInfo userInfo) 
     {
-        var url = string.Format(PROFILES_URL_FORMAT, userInfo.Id);
+        var url = string.Format(PROFILES_URL_FORMAT, userInfo.user_id);
         
         string jsonData = JsonUtility.ToJson(userInfo);
-        using UnityWebRequest request = UnityWebRequest.Post(url, jsonData, "application/json");
-        
-        yield return request.SendWebRequest();
-            
-        if (request.result != UnityWebRequest.Result.Success) 
+        using (UnityWebRequest request = UnityWebRequest.Post(url, jsonData, "application/json"))
         {
-            Debug.Log(request.downloadHandler.text);
-            Debug.LogError(request.error);
+            Debug.LogWarning("AddOrUpdateProfile, before yield");
+
+            yield return request.SendWebRequest();
+
+            Debug.LogWarning("AddOrUpdateProfile, after yield");
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError(request.error);
+            }
         }
     }
     
