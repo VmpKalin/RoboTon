@@ -1,9 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using DG.Tweening;
-using DG.Tweening.Core;
-using DG.Tweening.Plugins.Options;
 using Ui.WindowSystem;
 using UnityEngine;
 
@@ -13,7 +8,7 @@ namespace UI
     {
         [SerializeField] private Transform _throbber;
         
-        private readonly Vector3 _rot = new Vector3(0, 0,360);
+        private readonly Vector3 _rot = new(0, 0,360);
         
         private void Start()
         {
