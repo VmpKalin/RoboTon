@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 // ReSharper disable LocalVariableHidesMember
 
@@ -10,12 +11,13 @@ public class GridManager : MonoBehaviour
     public event System.Action<int, int> NumMovesChanged;
     
     public List<Sprite> Sprites = new();
-    public GameObject TilePrefab;
+    public TileItem TilePrefab;
     public int GridDimension = 6;
     public float Distance = 1.0f;
-    private Tile[,] _grid;
+    private TileItem[,] _grid;
     public int StartingMoves = 50;
     private int _numMoves;
+    
     
     
     public int NumMoves
@@ -30,17 +32,10 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    public static GridManager Instance { get; private set; }
-
-    private void Awake()
-    {
-        Instance = this;
-    }
-
     public void StartNewGame()
     {
         EraseGrid();
-        _grid = new Tile[GridDimension, GridDimension];
+        _grid = new TileItem[GridDimension, GridDimension];
         ScoreManager.Instance.CurrentScore = 0;
         NumMoves = StartingMoves;
         InitGrid();
@@ -48,14 +43,13 @@ public class GridManager : MonoBehaviour
 
     private void InitGrid()
     {
-        Vector3 positionOffset = transform.position - new Vector3(GridDimension * Distance / 2.0f, GridDimension * Distance / 2.0f, 0);
+        Vector3 positionOffset = - new Vector3(GridDimension * Distance / 2.0f, GridDimension * Distance / 2.0f, 0);
 
         for (int row = 0; row < GridDimension; row++)
             for (int column = 0; column < GridDimension; column++)
             {
-                var instantiateTile = Instantiate(TilePrefab.gameObject, transform);
-                Tile newTile = instantiateTile.GetComponent<Tile>();
-
+                var newTile = Instantiate(TilePrefab.gameObject, transform).GetComponent<TileItem>();
+                
                 List<Sprite> possibleSprites = new List<Sprite>(Sprites);
 
                 //Choose what sprite to use for this cell
@@ -73,11 +67,8 @@ public class GridManager : MonoBehaviour
                     possibleSprites.Remove(down1);
                 }
 
-                SpriteRenderer renderer = newTile.GetComponentInChildren<SpriteRenderer>();
-                renderer.sprite = possibleSprites[Random.Range(0, possibleSprites.Count)];
-
-                newTile.Position = new Vector2Int(column, row);
-                newTile.transform.position = new Vector3(column * Distance, row * Distance, 0) + positionOffset;
+                newTile.SetUp(this,new Vector2Int(column, row) , possibleSprites[Random.Range(0, possibleSprites.Count)]);
+                newTile.transform.localPosition = new Vector3(column * Distance, row * Distance, 0) + positionOffset;
                 
                 _grid[column, row] = newTile;
             }
@@ -97,22 +88,22 @@ public class GridManager : MonoBehaviour
 
     private Sprite GetSpriteAt(int column, int row)
     {
-        var spriteRendererAt = GetSpriteRendererAt(column, row);
-        return !spriteRendererAt ? null : spriteRendererAt.sprite;
+        var imageAt = GetImageAt(column, row);
+        return !imageAt ? null : imageAt.sprite;
     }
 
-    private SpriteRenderer GetSpriteRendererAt(int column, int row)
+    private Image GetImageAt(int column, int row)
     {
         if (column < 0 || column >= GridDimension
          || row < 0 || row >= GridDimension)
             return null;
-        return _grid[column, row].Renderer;
+        return _grid[column, row].Image;
     }
 
     public void SwapTiles(Vector2Int tile1Position, Vector2Int tile2Position)
     {
-        SpriteRenderer renderer1 = _grid[tile1Position.x, tile1Position.y].Renderer;
-        SpriteRenderer renderer2 = _grid[tile2Position.x, tile2Position.y].Renderer;
+        Image renderer1 = _grid[tile1Position.x, tile1Position.y].Image;
+        Image renderer2 = _grid[tile2Position.x, tile2Position.y].Image;
 
         Sprite temp = renderer1.sprite;
         renderer1.sprite = renderer2.sprite;
@@ -144,21 +135,21 @@ public class GridManager : MonoBehaviour
 
     private bool CheckMatches()
     {
-        HashSet<SpriteRenderer> matchedTiles = new HashSet<SpriteRenderer>();
+        HashSet<Image> matchedTiles = new HashSet<Image>();
         for (int row = 0; row < GridDimension; row++)
         {
             for (int column = 0; column < GridDimension; column++)
             {
-                SpriteRenderer current = GetSpriteRendererAt(column, row);
+                Image current = GetImageAt(column, row);
 
-                List<SpriteRenderer> horizontalMatches = FindColumnMatchForTile(column, row, current.sprite);
+                List<Image> horizontalMatches = FindColumnMatchForTile(column, row, current.sprite);
                 if (horizontalMatches.Count >= 2)
                 {
                     matchedTiles.UnionWith(horizontalMatches);
                     matchedTiles.Add(current);
                 }
 
-                List<SpriteRenderer> verticalMatches = FindRowMatchForTile(column, row, current.sprite);
+                List<Image> verticalMatches = FindRowMatchForTile(column, row, current.sprite);
                 if (verticalMatches.Count >= 2)
                 {
                     matchedTiles.UnionWith(verticalMatches);
@@ -167,7 +158,7 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        foreach (SpriteRenderer renderer in matchedTiles)
+        foreach (Image renderer in matchedTiles)
         {
             renderer.sprite = null;
         }
@@ -175,12 +166,12 @@ public class GridManager : MonoBehaviour
         return matchedTiles.Count > 0;
     }
 
-    private List<SpriteRenderer> FindColumnMatchForTile(int col, int row, Sprite sprite)
+    private List<Image> FindColumnMatchForTile(int col, int row, Sprite sprite)
     {
-        List<SpriteRenderer> result = new List<SpriteRenderer>();
+        List<Image> result = new List<Image>();
         for (int i = col + 1; i < GridDimension; i++)
         {
-            SpriteRenderer nextColumn = GetSpriteRendererAt(i, row);
+            Image nextColumn = GetImageAt(i, row);
             if (nextColumn.sprite != sprite)
             {
                 break;
@@ -190,12 +181,12 @@ public class GridManager : MonoBehaviour
         return result;
     }
 
-    private List<SpriteRenderer> FindRowMatchForTile(int col, int row, Sprite sprite)
+    private List<Image> FindRowMatchForTile(int col, int row, Sprite sprite)
     {
-        List<SpriteRenderer> result = new List<SpriteRenderer>();
+        List<Image> result = new List<Image>();
         for (int i = row + 1; i < GridDimension; i++)
         {
-            SpriteRenderer nextRow = GetSpriteRendererAt(col, i);
+            Image nextRow = GetImageAt(col, i);
             if (nextRow.sprite != sprite)
             {
                 break;
@@ -210,13 +201,13 @@ public class GridManager : MonoBehaviour
         for (int column = 0; column < GridDimension; column++)
             for (int row = 0; row < GridDimension; row++)
             {
-                while (GetSpriteRendererAt(column, row).sprite == null)
+                while (GetImageAt(column, row).sprite == null)
                 {
-                    SpriteRenderer current = GetSpriteRendererAt(column, row);
-                    SpriteRenderer next = current;
+                    Image current = GetImageAt(column, row);
+                    Image next = current;
                     for (int filler = row; filler < GridDimension - 1; filler++)
                     {
-                        next = GetSpriteRendererAt(column, filler + 1);
+                        next = GetImageAt(column, filler + 1);
                         current.sprite = next.sprite;
                         current = next;
                     }

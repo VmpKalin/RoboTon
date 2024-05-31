@@ -8,7 +8,7 @@ namespace UI
     {
         [SerializeField] private TextMeshProUGUI _movesText;
         [SerializeField] private TextMeshProUGUI _scoreText;
-
+        [SerializeField] private GridManager _gridManager;
         protected override void OnShown()
         {
             if (ScoreManager.Instance)
@@ -17,19 +17,19 @@ namespace UI
                 _scoreText.text =  ScoreManager.Instance.CurrentScore.ToString();
             }
 
-            if (GridManager.Instance)
+            if (_gridManager)
             {
-                GridManager.Instance.NumMovesChanged += OnNumMovesChanged;
-                _movesText.text =  GridManager.Instance.NumMoves.ToString();
+                _gridManager.NumMovesChanged += OnNumMovesChanged;
+                _movesText.text =  _gridManager.NumMoves.ToString();
             }
         
-            GridManager.Instance.StartNewGame();
+            _gridManager.StartNewGame();
         }
 
         protected override void OnHidden()
         {
             if(ScoreManager.Instance) ScoreManager.Instance.CurrentScoreChanged -= OnCurrentScoreChanged;
-            if(GridManager.Instance) GridManager.Instance.NumMovesChanged -= OnNumMovesChanged;
+            if(_gridManager) _gridManager.NumMovesChanged -= OnNumMovesChanged;
         }
 
         private void OnCurrentScoreChanged(int oldValue, int newValue)
