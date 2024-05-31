@@ -1,12 +1,10 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+using UI;
 using UnityEngine;
 using UnityEngine.Networking;
+// ReSharper disable ConvertToUsingDeclaration
 
 public class ProfileManager : MonoBehaviour
 {
@@ -26,7 +24,6 @@ public class ProfileManager : MonoBehaviour
     [Serializable]
     public struct UserInfo
     {
-        [JsonProperty(PropertyName = "user_id")]
         public string user_id;
         public int HighScore;
         public int Coins;
@@ -34,7 +31,16 @@ public class ProfileManager : MonoBehaviour
         public string Username;
         public bool ShowInLeaderBoard;
     }
-
+    
+    [Serializable]
+    public struct Response
+    {
+        public UserInfo body;
+        public bool isSuccess;
+        public int statusCode;
+        public string[] errors;
+    }
+    
     private void Awake()
     {
         Instance = this;
@@ -42,15 +48,11 @@ public class ProfileManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.LogWarning("Start method was executed");
-
         Username = URLParameters.GetSearchParameters().GetValueOrDefault("username", "username");
         Id = URLParameters.GetSearchParameters().GetValueOrDefault("id", "id");
-        Debug.LogWarning($"Username: {Username}");
-        Debug.LogWarning($"Id: {Id}");
-
-        AddTestData();
-        StartCoroutine(GetProfile(Id));
+        
+        var loadingPopup = PopupRouter.Instance.Router.Show<LoadingPopup>();
+        StartCoroutine(GetProfile(Id, (x)=> loadingPopup.Hide()));
     }
 
     private void AddTestData()
@@ -60,53 +62,81 @@ public class ProfileManager : MonoBehaviour
             user_id = Id,
             Username = Username,
             Coins = 69,
-            TonWallet = "unity wallet"
+            TonWallet = "unity wallet",
+            HighScore = 3399,
         }));
         /*
          * {"isSuccess":false,"statusCode":400,"errors":["User can update only his profile"]}
          */
     }
 
-    private IEnumerator GetProfile(string userId) 
+    private IEnumerator GetProfile(string userId, Action<bool> callback = null) 
     {
         var url = string.Format(PROFILES_URL_FORMAT, userId);
         
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
             request.SetRequestHeader("Access-Control-Allow-Origin", "*");
-            Debug.LogWarning("GetProfile, before yield");
-
             yield return request.SendWebRequest();
 
-            Debug.LogWarning("GetProfile, after yield");
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                var json = request.downloadHandler.text;
-                CurrentUserInfo = string.IsNullOrEmpty(json) ? new UserInfo() : JsonUtility.FromJson<UserInfo>(json);
+                var response = JsonUtility.FromJson<Response>(request.downloadHandler.text);
+                if (response.isSuccess)
+                {
+                    CurrentUserInfo = response.body;
+                    callback?.Invoke(true);
+                }
+                else
+                {
+                    var errors = response.errors is null ? "" : string.Join(" ", response.errors);
+                    Debug.LogError($"Failed {nameof(GetProfile)}. Status: {response.statusCode}. Errors: {errors}");
+                    callback?.Invoke(false);
+                    
+                    PopupRouter.Instance.Router.Show<ErrorPopup>();
+                }
             }
             else
             {
                 Debug.LogError(request.error);
+                callback?.Invoke(false);
+                PopupRouter.Instance.Router.Show<ErrorPopup>();
             }
         }
     }
     
-    private IEnumerator AddOrUpdateProfile(UserInfo userInfo) 
+    private IEnumerator AddOrUpdateProfile(UserInfo userInfo, Action<bool> callback = null) 
     {
         var url = string.Format(PROFILES_URL_FORMAT, userInfo.user_id);
         
         string jsonData = JsonUtility.ToJson(userInfo);
         using (UnityWebRequest request = UnityWebRequest.Post(url, jsonData, "application/json"))
         {
-            Debug.LogWarning("AddOrUpdateProfile, before yield");
-
             yield return request.SendWebRequest();
 
-            Debug.LogWarning("AddOrUpdateProfile, after yield");
             if (request.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError(request.error);
+                callback?.Invoke(false);
+                
+                PopupRouter.Instance.Router.Show<ErrorPopup>();
+            }
+            else
+            {
+                var response = JsonUtility.FromJson<Response>(request.downloadHandler.text);
+                if (!response.isSuccess)
+                {
+                    var errors = response.errors is null ? "" : string.Join(" ", response.errors);
+                    Debug.LogError($"Failed {nameof(GetProfile)}. Status: {response.statusCode}. Errors: {errors}");
+                    callback?.Invoke(false);
+                    
+                    PopupRouter.Instance.Router.Show<ErrorPopup>();
+                }
+                else
+                {
+                    callback?.Invoke(true);
+                }
             }
         }
     }
