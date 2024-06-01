@@ -26,13 +26,13 @@ public class UIManager : MonoBehaviour
 
     private void OnEnable()
     {
-        OnProviderStatusChange(tonConnectHandler.tonConnect.Wallet);
+        document.rootVisualElement.Q<Button>("BackFromMenuButton").RegisterCallback<ClickEvent>(CloseUiToolkit);
+        
+        OnProviderStatusChange(new Wallet());
         
         TonConnectHandler.OnProviderStatusChanged += OnProviderStatusChange;
         TonConnectHandler.OnProviderStatusChangedError += OnProviderStatusChangeError;
         DisableSendTXModal();
-        
-        document.rootVisualElement.Q<Button>("BackFromMenuButton").RegisterCallback<ClickEvent>(CloseUiToolkit);
     }
 
     private void OnDisable()
@@ -45,6 +45,7 @@ public class UIManager : MonoBehaviour
     {
         if(tonConnectHandler.tonConnect.IsConnected)
         {
+            wallet = tonConnectHandler.tonConnect.Wallet;
             Debug.Log("Wallet connected. Address: " + wallet.Account.Address + ". Platform: " + wallet.Device.Platform + "," + wallet.Device.AppName + "," + wallet.Device.AppVersion);
             CloseConnectModal();
             DisableConnectWalletButton();
