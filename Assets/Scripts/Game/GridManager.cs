@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 // ReSharper disable LocalVariableHidesMember
@@ -18,8 +20,8 @@ public class GridManager : MonoBehaviour
     public int StartingMoves = 50;
     private int _numMoves;
     
-    
-    
+    [SerializeField] private float _tileMoveDuration = 0.5f;
+
     public int NumMoves
     {
         get => _numMoves;
@@ -106,37 +108,77 @@ public class GridManager : MonoBehaviour
         return _grid[column, row].Image;
     }
 
-    public void SwapTiles(Vector2Int tile1Position, Vector2Int tile2Position)
+    public IEnumerator SwapTilesLong(Vector2Int tile1Position, Vector2Int tile2Position)
     {
-        Image renderer1 = _grid[tile1Position.x, tile1Position.y].Image;
-        Image renderer2 = _grid[tile2Position.x, tile2Position.y].Image;
-
-        Sprite temp = renderer1.sprite;
-        renderer1.sprite = renderer2.sprite;
-        renderer2.sprite = temp;
-
+        // disable grid
+        var eventSystem = EventSystem.current;
+        eventSystem.enabled = false;
+        // swap two tiles for some duration
+        
+        SoundManager.Instance.PlaySound(SoundType.TypeMove);
+        yield return SwapIconsSequence(tile1Position, tile2Position).WaitForCompletion();
+        
+        // wait a bit?
+        // CheckMatches() => explode for some time
+        
         bool changesOccurs = CheckMatches();
         if(!changesOccurs)
         {
-            temp = renderer1.sprite;
-            renderer1.sprite = renderer2.sprite;
-            renderer2.sprite = temp;
+            // oops. can't do. swap back 
             SoundManager.Instance.PlaySound(SoundType.TypeMove);
+            yield return SwapIconsSequence(tile1Position, tile2Position).WaitForCompletion();
         }
         else
         {
             SoundManager.Instance.PlaySound(SoundType.TypePop);
             NumMoves--;
+            
             do
             {
-                FillHoles();
-            } while (CheckMatches());
+                yield return new WaitForSeconds(0.1f);
+                // FillHoles() for some time
+                yield return FillHoles();
+            } while (CheckMatches()); // repeat CheckMatches()
+
             if (NumMoves <= 0)
             {
                 NumMoves = 0;
                 GameOver();
             }
         }
+        eventSystem.enabled = true;
+    }
+
+    private Sequence SwapIconsSequence(Vector2Int tile1Position, Vector2Int tile2Position)
+    {
+        Image renderer1 = _grid[tile1Position.x, tile1Position.y].Image;
+        Image renderer2 = _grid[tile2Position.x, tile2Position.y].Image;
+
+        Vector3 targetPositionFor1 = renderer2.transform.position;
+        Vector3 targetPositionFor2 = renderer1.transform.position;
+        
+        var sequence = DOTween.Sequence();
+        sequence
+            .Append(renderer1.transform.DOMove(targetPositionFor1, _tileMoveDuration))
+            .Join(renderer2.transform.DOMove(targetPositionFor2, _tileMoveDuration))
+
+            // on travel finish - snap back to position, but swap sprites
+            .AppendCallback(() => SwapIcons(renderer1, renderer2))
+            .AppendCallback(() => renderer1.transform.position = targetPositionFor2)
+            .AppendCallback(() => renderer2.transform.position = targetPositionFor1)
+            ;
+        return sequence.Play();
+    }
+
+    public void SwapTiles(Vector2Int tile1Position, Vector2Int tile2Position)
+    {
+        StartCoroutine(SwapTilesLong(tile1Position, tile2Position));
+    }
+
+    private static void SwapIcons(Image renderer1, Image renderer2)
+    {
+        //swap via deconstruction o-O
+        (renderer1.sprite, renderer2.sprite) = (renderer2.sprite, renderer1.sprite);
     }
 
     private bool CheckMatches()
@@ -202,7 +244,7 @@ public class GridManager : MonoBehaviour
         return result;
     }
 
-    private void FillHoles()
+    private IEnumerator FillHoles()
     {
         for (int column = 0; column < GridDimension; column++)
             for (int row = 0; row < GridDimension; row++)
@@ -210,14 +252,17 @@ public class GridManager : MonoBehaviour
                 while (GetImageAt(column, row).sprite == null)
                 {
                     Image current = GetImageAt(column, row);
+                    Debug.Log($"current[{column},{row}]: {(current.sprite is null?"null":current.sprite.name)}");
                     Image next = current;
                     for (int filler = row; filler < GridDimension - 1; filler++)
                     {
                         next = GetImageAt(column, filler + 1);
+                        Debug.Log($"next[{column},{filler + 1}]: {(next.sprite is null?"null":next.sprite.name)}");
                         current.sprite = next.sprite;
                         current = next;
                     }
                     next.sprite = Sprites[Random.Range(0, Sprites.Count)];
+                    yield return new WaitForSeconds(.5f);
                 }
             }
     }
@@ -229,7 +274,7 @@ public class GridManager : MonoBehaviour
         var infoToShow = new MainMenuWindow.InfoToShow()
         {
             Score = ScoreManager.Instance.CurrentScore,
-            Highscore = ScoreManager.Instance.HighScore,
+            Highscore = ProfileManager.Instance.CurrentUserInfo.HighScore,
             IsNewHighScore = isNewHighScore,
         };
         MenuRouter.Instance.Router.Show<MainMenuWindow>(infoToShow, callback: EraseGrid);

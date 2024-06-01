@@ -95,7 +95,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 11
+  m_fontSize: 23.2
   m_fontSizeBase: 9
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -446,6 +446,7 @@ MonoBehaviour:
   GridDimension: 5
   Distance: 100
   StartingMoves: 8
+  _tileMoveDuration: 0.3
 --- !u!1 &3597795572055733635
 GameObject:
   m_ObjectHideFlags: 0
@@ -978,7 +979,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 11
+  m_fontSize: 23.2
   m_fontSizeBase: 9
   m_fontWeight: 400
   m_enableAutoSizing: 1
