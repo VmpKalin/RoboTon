@@ -45,12 +45,6 @@ public class GridManager : MonoBehaviour
 
     private void InitGrid()
     {
-        RectTransform rectTransform = transform as RectTransform;
-        
-        var distanceHorizontal = rectTransform.rect.width / GridDimension;
-        var distanceVertical = rectTransform.rect.height / GridDimension;
-        var distance = Mathf.Min(distanceHorizontal, distanceVertical);
-        Vector3 positionOffset = - new Vector3(GridDimension * distance / 2.0f, GridDimension * distance / 2.0f, 0);
 
         for (int row = 0; row < GridDimension; row++)
             for (int column = 0; column < GridDimension; column++)
@@ -75,11 +69,29 @@ public class GridManager : MonoBehaviour
                 }
 
                 newTile.SetUp(this,new Vector2Int(column, row) , possibleSprites[Random.Range(0, possibleSprites.Count)]);
-                newTile.transform.localPosition = new Vector3(column * distance, row * distance, 0) + positionOffset;
+                newTile.transform.localPosition = GetTileLocalPosition(column, row);
                 var tileRectTransform = newTile.transform as RectTransform;
-                tileRectTransform.sizeDelta = new Vector2(distance, distance);
+                var tileSize = GetTileSize();
+                tileRectTransform.sizeDelta = new Vector2(tileSize, tileSize);
                 _grid[column, row] = newTile;
             }
+    }
+
+    private Vector3 GetTileLocalPosition(int column, int row)
+    {
+        var tileSize = GetTileSize();
+        var tileHalfSize = tileSize / 2.0f;
+        Vector3 positionOffset = - new Vector3(GridDimension * tileHalfSize , GridDimension * tileHalfSize, 0);
+        return new Vector3(column * tileSize + tileHalfSize, row * tileSize + tileHalfSize, 0) + positionOffset;
+    }
+
+    private float GetTileSize()
+    {
+        RectTransform rectTransform = transform as RectTransform;
+        var distanceHorizontal = rectTransform.rect.width / GridDimension;
+        var distanceVertical = rectTransform.rect.height / GridDimension;
+        var distance = Mathf.Min(distanceHorizontal, distanceVertical);
+        return distance;
     }
 
     private void EraseGrid()
@@ -164,8 +176,39 @@ public class GridManager : MonoBehaviour
 
             // on travel finish - snap back to position, but swap sprites
             .AppendCallback(() => SwapIcons(renderer1, renderer2))
-            .AppendCallback(() => renderer1.transform.position = targetPositionFor2)
-            .AppendCallback(() => renderer2.transform.position = targetPositionFor1)
+            .Append(renderer1.transform.DOMove(targetPositionFor2, 0))
+            .Join(renderer2.transform.DOMove(targetPositionFor1, 0))
+            ;
+        return sequence.Play();
+    }
+
+    private Sequence MoveIconToEmptyTileSequence(Vector2Int targetTilePos, Vector2Int fromTilePosition)
+    {
+        var targetTile = _grid[targetTilePos.x, targetTilePos.y];
+        Image targetImage = targetTile.Image;
+        var fromTileItem = GetImageAt(fromTilePosition.x, fromTilePosition.y);
+        
+        Vector3 imageOriginalPosition = targetImage.transform.position;
+        
+        Vector3 startPosition;
+        Sprite spriteToSwap;
+        if (!fromTileItem)
+        {
+            // we are trying to get an item beyond grid
+            startPosition = transform.TransformPoint(GetTileLocalPosition(fromTilePosition.x, fromTilePosition.y));
+            spriteToSwap = Sprites[Random.Range(0, Sprites.Count)];
+        }
+        else
+        {
+            startPosition = fromTileItem.transform.position;
+            spriteToSwap = fromTileItem.sprite;
+        }
+        
+        var sequence = DOTween.Sequence()
+                .AppendCallback(() => { targetImage.sprite = spriteToSwap; 
+                    targetImage.color = spriteToSwap? Color.white: Color.clear;})
+                .Join(targetImage.transform.DOMove(startPosition, 0))
+                .Append(targetImage.transform.DOMove(imageOriginalPosition, _tileMoveDuration))
             ;
         return sequence.Play();
     }
@@ -206,9 +249,10 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        foreach (Image renderer in matchedTiles)
+        foreach (Image image in matchedTiles)
         {
-            renderer.sprite = null;
+            image.sprite = null;
+            image.color = Color.clear;
         }
         ScoreManager.Instance.CurrentScore += matchedTiles.Count;
         return matchedTiles.Count > 0;
@@ -246,25 +290,26 @@ public class GridManager : MonoBehaviour
 
     private IEnumerator FillHoles()
     {
-        for (int column = 0; column < GridDimension; column++)
-            for (int row = 0; row < GridDimension; row++)
+        bool anyEmptyLeft;
+        do
+        {
+            anyEmptyLeft = false;
+            var sequence = DOTween.Sequence();
+            for (int column = 0; column < GridDimension; column++)
             {
-                while (GetImageAt(column, row).sprite == null)
+                for (int row = 0; row < GridDimension; row++)
                 {
-                    Image current = GetImageAt(column, row);
-                    Debug.Log($"current[{column},{row}]: {(current.sprite is null?"null":current.sprite.name)}");
-                    Image next = current;
-                    for (int filler = row; filler < GridDimension - 1; filler++)
+                    if (GetImageAt(column, row).sprite) continue;
+                    
+                    for (int filler = row; filler < GridDimension; filler++)
                     {
-                        next = GetImageAt(column, filler + 1);
-                        Debug.Log($"next[{column},{filler + 1}]: {(next.sprite is null?"null":next.sprite.name)}");
-                        current.sprite = next.sprite;
-                        current = next;
+                        sequence.Join(MoveIconToEmptyTileSequence(new(column, filler), new(column, filler + 1)));
                     }
-                    next.sprite = Sprites[Random.Range(0, Sprites.Count)];
-                    yield return new WaitForSeconds(.5f);
+                    anyEmptyLeft = true;
                 }
             }
+            if(anyEmptyLeft) yield return sequence.Play().WaitForCompletion();
+        } while (anyEmptyLeft);
     }
 
     private void GameOver()
