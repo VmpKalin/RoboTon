@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 public class ProfileManager : MonoBehaviour
 {
     [SerializeField] private UserInfo _currentUserInfo;
-    private const string PROFILES_URL_FORMAT = "http://ec2-18-157-169-245.eu-central-1.compute.amazonaws.com:7569/profile/Profiles?userId={0}";
+    private const string PROFILES_URL_FORMAT = "https://sleepy-springs-46766-d3e2e40d6cdf.herokuapp.com/api/profile/Profiles?userId=%7B0%7D";
     public static ProfileManager Instance { get; private set; }
 
     public UserInfo CurrentUserInfo
@@ -82,8 +82,11 @@ public class ProfileManager : MonoBehaviour
                 if (response.isSuccess)
                 {
                     response.body.user_id = CurrentUserInfo.user_id;
-                    CurrentUserInfo = response.body;
-                    callback?.Invoke(true);
+                    if (!string.IsNullOrEmpty(response.body.Username))
+                    {
+                        CurrentUserInfo = response.body;
+                        callback?.Invoke(true);
+                    }
                 }
                 else
                 {
