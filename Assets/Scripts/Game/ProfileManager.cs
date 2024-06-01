@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 public class ProfileManager : MonoBehaviour
 {
     [SerializeField] private UserInfo _currentUserInfo;
-    private const string PROFILES_URL_FORMAT = "https://sleepy-springs-46766-d3e2e40d6cdf.herokuapp.com/api/profile/Profiles?userId=%7B0%7D";
+    private const string PROFILES_URL_FORMAT = "https://sleepy-springs-46766-d3e2e40d6cdf.herokuapp.com/api/profile/Profiles?userId={0}";
     public static ProfileManager Instance { get; private set; }
 
     public UserInfo CurrentUserInfo
@@ -128,7 +128,7 @@ public class ProfileManager : MonoBehaviour
                 if (!response.isSuccess)
                 {
                     var errors = response.errors is null ? "" : string.Join(" ", response.errors);
-                    Debug.LogError($"Failed {nameof(GetProfile)}. Status: {response.statusCode}. Errors: {errors}");
+                    Debug.LogError($"Failed {nameof(AddOrUpdateProfile)}. Status: {response.statusCode}. Errors: {errors}");
                     callback?.Invoke(false);
                     
                     PopupRouter.Instance.Router.Show<ErrorPopup>();
