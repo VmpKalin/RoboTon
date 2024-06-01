@@ -316,6 +316,7 @@ public class GridManager : MonoBehaviour
     {
         SoundManager.Instance.PlaySound(SoundType.TypeGameOver);
         bool isNewHighScore = ScoreManager.Instance.CheckAndSetHighScore(ScoreManager.Instance.CurrentScore);
+        ProfileManager.Instance.UpdateTotalScore(ScoreManager.Instance.CurrentScore);
         var infoToShow = new MainMenuWindow.InfoToShow()
         {
             Score = ScoreManager.Instance.CurrentScore,
@@ -323,6 +324,7 @@ public class GridManager : MonoBehaviour
             IsNewHighScore = isNewHighScore,
         };
         MenuRouter.Instance.Router.Show<MainMenuWindow>(infoToShow, callback: EraseGrid);
+        ProfileManager.Instance.UpdateProfileToServer();
     }
 
 }

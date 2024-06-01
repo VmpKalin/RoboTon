@@ -59,11 +59,17 @@ public class ProfileManager : MonoBehaviour
         var currentUserInfoToUpdate = CurrentUserInfo;
         currentUserInfoToUpdate.HighScore = newHighScore;
         CurrentUserInfo = currentUserInfoToUpdate;
-        StartCoroutine(AddOrUpdateProfile(currentUserInfoToUpdate));
     }
 
-    public void UpdateWalletInfo(string newWallet)
+    public void UpdateTotalScore(int additionalScore)
     {
+        var currentUserInfoToUpdate = CurrentUserInfo;
+        currentUserInfoToUpdate.Coins += additionalScore;
+        CurrentUserInfo = currentUserInfoToUpdate;
+    }
+    public void UpdateProfileToServer()
+    {
+        StartCoroutine(AddOrUpdateProfile(CurrentUserInfo));
     }
     
     private IEnumerator GetProfile(string userId, Action<bool> callback = null) 
@@ -140,4 +146,5 @@ public class ProfileManager : MonoBehaviour
             }
         }
     }
+
 }

@@ -14,11 +14,6 @@ namespace UI
         [SerializeField] private TextMeshProUGUI _idText;
         [SerializeField] private GameObject _uiToolkitGameObject;
 
-        private void OnWalletEndEdit(string newWallet)
-        {
-            ProfileManager.Instance.UpdateWalletInfo(newWallet);
-        }
-
         protected override void OnSetInfoToShow(object infoToShow)
         {
             _usernameText.text = ProfileManager.Instance.CurrentUserInfo.Username;
