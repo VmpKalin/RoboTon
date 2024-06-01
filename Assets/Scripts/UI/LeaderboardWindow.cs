@@ -16,7 +16,7 @@ namespace UI
         [SerializeField] private float _itemHeightPercent;
         private LeaderboardEntry[] _currentLeaderboardData;
 
-        private const string LEADERBOARD_URL = "http://ec2-18-157-169-245.eu-central-1.compute.amazonaws.com:7569/profile/Profiles/Leaderboards";
+        private const string LEADERBOARD_URL = "https://sleepy-springs-46766-d3e2e40d6cdf.herokuapp.com/api/profile/Profiles/Leaderboards";
         protected override void OnShown()
         {
             base.OnShowing();
