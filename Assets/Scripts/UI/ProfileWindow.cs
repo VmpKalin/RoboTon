@@ -10,14 +10,9 @@ namespace UI
     {
         [SerializeField] private TextMeshProUGUI _usernameText;
         [SerializeField] private TextMeshProUGUI _coinsText;
-        [SerializeField] private TMP_InputField _walletInputField;
         [SerializeField] private TextMeshProUGUI _highscoreText;
         [SerializeField] private TextMeshProUGUI _idText;
-
-        private void Start()
-        {
-            _walletInputField.onEndEdit.AddListener(OnWalletEndEdit);
-        }
+        [SerializeField] private GameObject _uiToolkitGameObject;
 
         private void OnWalletEndEdit(string newWallet)
         {
@@ -32,7 +27,11 @@ namespace UI
             _highscoreText.text = ProfileManager.Instance.CurrentUserInfo.HighScore.ToString();
 
             _coinsText.text = ProfileManager.Instance.CurrentUserInfo.Coins.ToString();
-            _walletInputField.text = ProfileManager.Instance.CurrentUserInfo.TonWallet;
+        }
+
+        protected override void OnShown()
+        {
+            _uiToolkitGameObject.SetActive(true);
         }
 
         public void ClosePopup()

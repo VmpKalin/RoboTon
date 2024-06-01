@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TonSdk.Connect;
 using TonSdk.Core;
+using UI;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UIElements;
@@ -22,14 +23,22 @@ public class UIManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private TonConnectHandler tonConnectHandler;
-    
-    private void Awake()
+
+    private void OnEnable()
     {
+        OnProviderStatusChange(tonConnectHandler.tonConnect.Wallet);
+        
         TonConnectHandler.OnProviderStatusChanged += OnProviderStatusChange;
         TonConnectHandler.OnProviderStatusChangedError += OnProviderStatusChangeError;
         DisableSendTXModal();
-        DisableWalletInfoButton();
-        EnableConnectWalletButton();
+        
+        document.rootVisualElement.Q<Button>("BackFromMenuButton").RegisterCallback<ClickEvent>(CloseUiToolkit);
+    }
+
+    private void OnDisable()
+    {
+        TonConnectHandler.OnProviderStatusChanged -= OnProviderStatusChange;
+        TonConnectHandler.OnProviderStatusChangedError -= OnProviderStatusChangeError;
     }
 
     private void OnProviderStatusChange(Wallet wallet)
@@ -287,8 +296,15 @@ public class UIManager : MonoBehaviour
         document.rootVisualElement.Q<VisualElement>("ConnectWalletButton").UnregisterCallback<ClickEvent>(ConnectWalletButtonClick);
         document.rootVisualElement.Q<VisualElement>("ConnectWalletButton").RegisterCallback<ClickEvent>(ConnectWalletButtonClick);
         document.rootVisualElement.Q<VisualElement>("ConnectWalletButton").style.display = DisplayStyle.Flex;
+        
     }
 
+    private void CloseUiToolkit(ClickEvent clickEvent)
+    {
+        gameObject.SetActive(false);
+        PopupRouter.Instance.Router.Hide<ProfileWindow>();
+    }
+    
     private void EnableWalletInfoButton(string wallet)
     {
         // enable wallet info and disconnect button

@@ -85,8 +85,8 @@ public class ProfileManager : MonoBehaviour
                     if (!string.IsNullOrEmpty(response.body.Username))
                     {
                         CurrentUserInfo = response.body;
-                        callback?.Invoke(true);
                     }
+                    callback?.Invoke(true);
                 }
                 else
                 {
