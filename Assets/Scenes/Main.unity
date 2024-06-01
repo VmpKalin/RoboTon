@@ -2267,8 +2267,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UI.ProfileWindow, Assembly-CSharp
+      - m_Target: {fileID: 6305074136633165961}
+        m_TargetAssemblyTypeName: UI.ErrorPopup, Assembly-CSharp
         m_MethodName: ClosePopup
         m_Mode: 1
         m_Arguments:
